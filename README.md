@@ -71,5 +71,109 @@
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REOSITORY:latest .
         docker push -a $ECR_REGISTRY/$ECR_REPOSITORY
       ```
+- 📊What database is the container connecting with, and how to correctly config the database to enhance seamless operation of the application (CRUD)
+  - Use the DB on AWS (RDS), 
+    ```
+    DB_Driver: pgsql
+    DB_SOURCE=postgresql://root:secret1@{{endpoint on AWS RDS dashboard}} :5432/{{DB identifier on AWS}}
+    ```
+    As the GitHub workflow logins with a proper user (created by the root user on IAM), the GitHub Action uses a role that has permissions to read and write secrets, it can connect to the RDS DB.
 
+  - or, use mysql deployment and service in the K8S context. _It must be in the same context, such as minikube, as the context where the application is deployed.
+    - mysql-deployment.yaml
+    ```
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: mysql
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: mysql
+      template:
+        metadata:
+          labels:
+            app: mysql
+        spec:
+          containers:
+          - name: mysqlcontainer
+            image: mysql:8
+            env:
+            - name: MYSQL_DATABASE
+              value: (1) *must be the same as the database specified in the spring.datasource.url in the environment of the deployment of the application*
+            - name: MYSQL_ROOT_PASSWORD
+              value: secret1
+            ports:
+            - containerPort: 3306
+    ```
+    - mysql-service.yaml
+    ```
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: (2) *the name, must be the same as the {{host}} specified in the spring.datasource.url in the environment of the deployment of the application*
+    spec:
+      selector:
+        app: mysql
+      ports:
+        - protocol: TCP
+          port: 3306
+          targetPort: 3306
+    ```
+    _Explanation with example_
+    Let's say,
+      (1) _my-demo-db_
+      (2) _my-demo-service_
+    Then, the deployment.yaml needs to be configured like that
+    ```
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: demo-deployment
+      labels:
+        app: my-demo1
+    spec:
+      replicas: 2
+      selector:
+        matchLabels:
+          app: my-demo1
+      template:
+        metadata:
+          labels:
+            app: my-demo1
+        spec:
+          containers:
+          - name: onmyapi-container
+            image: {{ image uri }}  
+            imagePullPolicy: Always
+            ports:
+            - containerPort: 8080
+            env: 
+            - name: spring.datasource.url
+              value: jdbc:mysql://root:secret1@my-demo-service:3306/my-demo-db
+          imagePullSecrets:
+            - name: demo-secret
+    ```
+- Deployment, K8S cluster, AWS EKS
+  - If not deployment with EKS context, we can choose to use minikube
+      - To view all configs, run `kubectl config get-contexts`
+      - To switch between contexts, run `kubectl config use-context minikube`
 
+  - After the context is switched, apply the yamls.
+    - It requires secrets for private registry.
+  
+  - _Difference between service, deployment, ingress_
+
+      - #### Deployment: the actual instance of the applicatio, managing a set of pods to run an application workload. 
+          - The deployment can create/destory pods dynamatically.
+          - Deployment enables that the container runs on pods, and that it listens on the -containerPort.
+
+          - Service is needed to expose the service ports. 
+            - Q: If some set of BE pods provides functionality to FE pods inside your cluster, how do the FEs find out and keep track of which IP address to connect to?
+          Use service
+
+      - #### Service: providing endpoints for accessing the application, regardless of the number of instances running (exposing necessary functionalities)
+          - Publish the pods of demo-api that listen on TCP 8080 port
+          - Incoming requests to port 80 of the service will be forwarded to port 8080
+      - #### Ingress: need to specify the port of the (different) services to make sure that requests are correctly forwarded.
