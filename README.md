@@ -176,4 +176,7 @@
       - #### Service: providing endpoints for accessing the application, regardless of the number of instances running (exposing necessary functionalities)
           - Publish the pods of demo-api that listen on TCP 8080 port
           - Incoming requests to port 80 of the service will be forwarded to port 8080
+            - Type ClusterIP: 
+            - Type NodePort: the control plane allocates a port from a range specified by --servide-node-port-range (nodePort is optional, because the control plane can allocate a default port)
+
       - #### Ingress: need to specify the port of the (different) services to make sure that requests are correctly forwarded.
