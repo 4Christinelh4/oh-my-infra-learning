@@ -1,7 +1,7 @@
 # oh-my-infra-learning
 
 - The whole GitHub flow to build and push an image, allow it to connect to the DB on AWS, and deployment the application
-  - ⛴️Build the image from the dockerfile in the directory
+  - ⛴️ Build the image from the dockerfile in the directory
 
   _Important notes_
     - If docker-compose.yaml is used, it will not build an image that combines both database and the actual application (i.e.: SpringBoot/Go server application).Instead, the created container combines the 2 containers. Therefore, it's very handy to use that to fast test the applications. Also, the entrypoint in docker-compose will override that in Dockerfile.
@@ -71,7 +71,7 @@
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REOSITORY:latest .
         docker push -a $ECR_REGISTRY/$ECR_REPOSITORY
       ```
-- 📊What database is the container connecting with, and how to correctly config the database to enhance seamless operation of the application (CRUD)
+- 📊 What database is the container connecting with, and how to correctly config the database to enhance seamless operation of the application (CRUD)
   - Use the DB on AWS (RDS), 
     ```
     DB_Driver: pgsql
@@ -181,19 +181,45 @@
 
       - #### Ingress: need to specify the port of the (different) services to make sure that requests are correctly forwarded.
 
-- First flask app with LangChain, chat models, LLM
+- 🦜 🐍 First Python flask app with LangChain, chat models, LLM
   - Use GCP secret manager to load secrets
     - Step 1:
       - Create account on GCP, make sure to enable _Secret Manager API_ and _IAM Service Account Credentials API_. Create your project on GCP, and store the secrets (LangChain token, GitHub token and LLM model token) into [secret manager](https://console.cloud.google.com/security/secret-manager).
       - To enable the services, you have to enable a billing account. However, you will not be charged as long as your usage doesn't exceed the free tier limit.
     - Step 2:
       - On the VSCode terminal, login with gcloud
-        ```
+        ```bash
         gcloud auth application-default login
         ```
-        This authenticates you use client libraries, so that you can have access to the credentials in Python code. 
-      
+        This authenticates you use client libraries, so that you can have access to the credentials in your code.
+        For example, `source_credentials, _ = google.auth.default()` in Python
+        On the other hand, `gcloud auth login` will only allow you to use the gcloud CLI.
+        Check the account you logged in with by
+
+        ```bash
+        gcloud auth list
+        ```
+        Config the project with
+
+        ```bash
+        gcloud iam servie-accounts create secret-accessor --description="Service account for accessing secrets" --display-name="Secret Accessor"
+        ```
+        The service account looks like `secret-accessor@{{project ID}}.iam.gserviceaccount.com`
     - Step 3:
-    - Step 4:
-    - Step 5:
+      - Grant your user account impersonation access.
+        ```bash
+        gcloud iam service-accounts add-iam-policy-binding secret-accessor@hale-entry-460707-d0.iam.gserviceaccount.com \\n  --member="user:yuweichris8888@gmail.com" \\n  --role="roles/iam.serviceAccountTokenCreator"
+        ```
+      - 💣 Note: If an error like this occurrs:
+        ```
+        gcloud.iam.service-accounts.add-iam-policy-binding Failed to impersonate
+        Make sure the account that's trying to impersonate it has access to the service account itself and the "roles/iam.serviceAccountTokenCreator" role.
+        ```
+        Diagnosis:
+        You probably have executed this earlier
+        ```
+        gcloud config set auth/impersonate_service_account secret-accessor@{{project ID}}.iam.gserviceaccount.com
+        ```
+        
+      - Test
     
