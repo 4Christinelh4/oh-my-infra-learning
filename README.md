@@ -223,7 +223,20 @@
         ```
         gcloud config set auth/impersonate_service_account secret-accessor@{{project ID}}.iam.gserviceaccount.com
         ```
-        As a result, all gcloud commands will impersonate the service account. 
+        As a result, the service account is trying to impersonate itself. To fix it, reset the gcloud to use the user (owner) account:
+        ```bash
+        gcloud config unset auth/impersonate_service_account
+        ```
         
-      - Test
+      - Test impersonation:
+        ```
+        gcloud secrets versions access latest \
+        --secret=MY_SECRET \
+        --impersonate-service-account=secret-accessor@{{project ID}}.iam.gserviceaccount.com
+
+        ```
+    - Step 4: load the secrets in Python environment
+      
+
+        
     
