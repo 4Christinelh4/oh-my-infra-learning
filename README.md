@@ -180,3 +180,20 @@
             - Type NodePort: the control plane allocates a port from a range specified by --servide-node-port-range (nodePort is optional, because the control plane can allocate a default port)
 
       - #### Ingress: need to specify the port of the (different) services to make sure that requests are correctly forwarded.
+
+- First flask app with LangChain, chat models, LLM
+  - Use GCP secret manager to load secrets
+    - Step 1:
+      - Create account on GCP, make sure to enable _Secret Manager API_ and _IAM Service Account Credentials API_. Create your project on GCP, and store the secrets (LangChain token, GitHub token and LLM model token) into [secret manager](https://console.cloud.google.com/security/secret-manager).
+      - To enable the services, you have to enable a billing account. However, you will not be charged as long as your usage doesn't exceed the free tier limit.
+    - Step 2:
+      - On the VSCode terminal, login with gcloud
+        ```
+        gcloud auth application-default login
+        ```
+        This authenticates you use client libraries, so that you can have access to the credentials in Python code. 
+      
+    - Step 3:
+    - Step 4:
+    - Step 5:
+    
