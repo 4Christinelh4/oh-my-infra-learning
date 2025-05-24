@@ -211,15 +211,19 @@
         gcloud iam service-accounts add-iam-policy-binding secret-accessor@hale-entry-460707-d0.iam.gserviceaccount.com \\n  --member="user:yuweichris8888@gmail.com" \\n  --role="roles/iam.serviceAccountTokenCreator"
         ```
       - 💣 Note: If an error like this occurrs:
+        
         ```
         gcloud.iam.service-accounts.add-iam-policy-binding Failed to impersonate
         Make sure the account that's trying to impersonate it has access to the service account itself and the "roles/iam.serviceAccountTokenCreator" role.
         ```
-        Diagnosis:
-        You probably have executed this earlier
+
+        _Diagnosis_:
+        You probably have executed this earlier:
+        
         ```
         gcloud config set auth/impersonate_service_account secret-accessor@{{project ID}}.iam.gserviceaccount.com
         ```
+        As a result, all gcloud commands will impersonate the service account. 
         
       - Test
     
